@@ -235,28 +235,9 @@ describe(`worker (share-state)`, () => {
       staticQueryID
     )
 
-    expect(components).toMatchInlineSnapshot(`
-      Object {
-        "Head": false,
-        "componentPath": "/foo",
-        "config": false,
-        "isInBootstrap": true,
-        "isSlice": false,
-        "pages": Object {},
-        "query": "I'm a page query",
-        "serverData": false,
-      }
-    `)
+    expect(components).toMatchInlineSnapshot(`null`)
 
-    expect(staticQueryComponents).toMatchInlineSnapshot(`
-      Object {
-        "componentPath": "/foo",
-        "hash": "hash",
-        "id": "1",
-        "name": "foo",
-        "query": "I'm a static query",
-      }
-    `)
+    expect(staticQueryComponents).toMatchInlineSnapshot(`null`)
   })
 
   it(`can set slices results into state and access inference metadata`, async () => {

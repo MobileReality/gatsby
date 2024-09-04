@@ -15,7 +15,7 @@ const BULK_DATA_URL = `http://bulk-query-data.co`
 const server = setupServer()
 const nodeTypes = [`products`, `variants`, `collections`, `orders`, `locations`]
 
-let originalFetch: any
+let originalFetch: typeof fetch
 
 beforeAll(() => {
   originalFetch = global.fetch
