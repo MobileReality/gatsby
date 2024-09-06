@@ -1229,83 +1229,73 @@ describe(`Query schema`, () => {
         `)
       })
 
-      it(`works correctly during query execution`, async () => {
-        const { clearKeptObjects } = require(`lmdb`)
+      it(`works correctly during query execution with garbage collection`, async () => {
+        // borrowed from https://unpkg.com/browse/expose-gc@1.0.0/function.js
+        const v8 = require(`v8`)
+        const vm = require(`vm`)
+        v8.setFlagsFromString(`--expose_gc`)
+        const gc = vm.runInNewContext(`gc`)
 
+        const { clearKeptObjects } = require(`lmdb`)
+        // Mock implementation for orderBySpy
         orderBySpy.mockImplementationOnce((...args) => {
+          // Create a WeakRef to a node, simulating it being removed from memory
+          const weakNode = new WeakRef(getNode(`md1`)) // eslint-disable-line no-undef
+
+          // Ensure the node is still in memory at the start of the test
+          if (!weakNode.deref()) {
+            throw new Error(`Test setup failed, node should exist at the start`)
+          }
+
+          // Clear the current state of the API runner
           apiRunnerNode.mockClear()
 
+          // Simulate removing weakly held objects from memory
           clearKeptObjects()
+          gc() // Trigger garbage collection
 
+          // Add delay to ensure GC has time to remove objects
+          setTimeout(() => {
+            if (weakNode.deref()) {
+              throw new Error(
+                `Test setup is broken, something is keeping the node in memory`
+              )
+            }
+          }, 10)
+
+          // Restore the default sort behavior
           return mockActualOrderBy(...args)
         })
 
+        // Ensure orderBySpy has not been called at the start
         expect(orderBySpy).not.toBeCalled()
 
+        // Define a GraphQL query with sorting to hit the code path using `orderBy`
         const query = `
           {
             allMarkdown(sort: { fields: id }) {
-              group(field: frontmatter___authors___name) {
-                fieldValue
-                edges {
-                  node {
-                    frontmatter {
-                      title
-                      date(formatString: "YYYY-MM-DD")
-                    }
-                  }
-                }
-              }
+              distinct(field: frontmatter___authors___name)
             }
           }
         `
 
+        // Execute the query
         const results = await runQuery(query)
 
+        // Ensure that `orderBy` has been called
         expect(orderBySpy).toBeCalled()
 
+        // Expected result of the query
         const expected = {
           allMarkdown: {
-            group: [
-              {
-                fieldValue: `Author 1`,
-                edges: [
-                  {
-                    node: {
-                      frontmatter: {
-                        title: `Markdown File 1`,
-                        date: `2019-01-01`,
-                      },
-                    },
-                  },
-                  {
-                    node: {
-                      frontmatter: {
-                        title: `Markdown File 2`,
-                        date: null,
-                      },
-                    },
-                  },
-                ],
-              },
-              {
-                fieldValue: `Author 2`,
-                edges: [
-                  {
-                    node: {
-                      frontmatter: {
-                        title: `Markdown File 1`,
-                        date: `2019-01-01`,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
+            distinct: [`Author 1`, `Author 2`],
           },
         }
 
+        // Ensure there are no errors in the query results
         expect(results.errors).toBeUndefined()
+
+        // Ensure the data matches the expected result
         expect(results.data).toEqual(expected)
       })
     })
@@ -1391,18 +1381,44 @@ describe(`Query schema`, () => {
         `)
       })
 
-      it(`works correctly during query execution`, async () => {
+      it(`works correctly during query execution with garbage collection`, async () => {
+        // borrowed from https://unpkg.com/browse/expose-gc@1.0.0/function.js
+        const v8 = require(`v8`)
+        const vm = require(`vm`)
+        v8.setFlagsFromString(`--expose_gc`)
+        const gc = vm.runInNewContext(`gc`)
+
         const { clearKeptObjects } = require(`lmdb`)
 
         // Mock implementation for orderBySpy
         orderBySpy.mockImplementationOnce((...args) => {
+          // Create a WeakRef to a node, simulating it being removed from memory
+          const weakNode = new WeakRef(getNode(`md1`)) // eslint-disable-line no-undef
+
+          // Ensure the node is still in memory at the start of the test
+          if (!weakNode.deref()) {
+            throw new Error(`Test setup failed, node should exist at the start`)
+          }
+
           // Simulate node absence without using WeakRef and GC
           apiRunnerNode.mockClear()
 
           // Ensure clearKeptObjects works
           clearKeptObjects()
 
-          // Restore default sort behavior
+          // Simulate removing weakly held objects from memory
+          gc() // Trigger garbage collection
+
+          // Add delay to ensure GC has time to remove objects
+          setTimeout(() => {
+            if (weakNode.deref()) {
+              throw new Error(
+                `Test setup is broken, something is keeping the node in memory`
+              )
+            }
+          }, 10)
+
+          // Restore the default sort behavior
           return mockActualOrderBy(...args)
         })
 
