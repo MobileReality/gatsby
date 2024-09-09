@@ -1576,35 +1576,62 @@ describe(`Query schema`, () => {
         })
 
         it(`works correctly on fields with resolver during query execution`, async () => {
+          // borrowed from https://unpkg.com/browse/expose-gc@1.0.0/function.js
+          const v8 = require(`v8`)
+          const vm = require(`vm`)
+          v8.setFlagsFromString(`--expose_gc`)
+          const gc = vm.runInNewContext(`gc`)
+
           const { clearKeptObjects } = require(`lmdb`)
 
           // Mock implementation for orderBySpy
           orderBySpy.mockImplementationOnce((...args) => {
-            // Simulate node absence
+            // Create a WeakRef to a node, simulating it being removed from memory
+            const weakNode = new WeakRef(getNode(`md1`)) // eslint-disable-line no-undef
+
+            // Ensure the node is still in memory at the start of the test
+            if (!weakNode.deref()) {
+              throw new Error(
+                `Test setup failed, node should exist at the start`
+              )
+            }
+
+            // Clear the current state of the API runner
             apiRunnerNode.mockClear()
 
-            // Ensure clearKeptObjects works
+            // Simulate removing weakly held objects from memory
             clearKeptObjects()
+            gc() // Trigger garbage collection
 
-            // Restore default sort behavior
+            // Add delay to ensure GC has time to remove objects
+            setTimeout(() => {
+              if (weakNode.deref()) {
+                throw new Error(
+                  `Test setup is broken, something is keeping the node in memory`
+                )
+              }
+            }, 10)
+
+            // Restore the default sort behavior
             return mockActualOrderBy(...args)
           })
 
+          // Ensure orderBySpy has not been called at the start
           expect(orderBySpy).not.toBeCalled()
 
-          // GraphQL query definition
+          // Define a GraphQL query with sorting to hit the code path using `orderBy`
           const query = `
             {
               allMarkdown(sort: { fields: id }) {
-                min(field: frontmatter___priceInCents)
+                  min(field: frontmatter___priceInCents)
               }
             }
-          `
+           `
 
           // Execute the query
           const results = await runQuery(query)
 
-          // Ensure that orderBySpy was called
+          // Ensure that `orderBy` has been called
           expect(orderBySpy).toBeCalled()
 
           // Ensure there are no errors in the query results
@@ -1655,15 +1682,40 @@ describe(`Query schema`, () => {
         })
 
         it(`works correctly on fields with resolver during query execution`, async () => {
+          const v8 = require(`v8`)
+          const vm = require(`vm`)
+          v8.setFlagsFromString(`--expose_gc`)
+          const gc = vm.runInNewContext(`gc`)
+
           const { clearKeptObjects } = require(`lmdb`)
 
           // Mock implementation for orderBySpy
           orderBySpy.mockImplementationOnce((...args) => {
-            // Simulate node absence
+            // Create a WeakRef to a node, simulating it being removed from memory
+            const weakNode = new WeakRef(getNode(`md1`)) // eslint-disable-line no-undef
+
+            // Ensure the node is still in memory at the start of the test
+            if (!weakNode.deref()) {
+              throw new Error(
+                `Test setup failed, node should exist at the start`
+              )
+            }
+
+            // Clear the current state of the API runner
             apiRunnerNode.mockClear()
 
-            // Ensure clearKeptObjects works
+            // Simulate removing weakly held objects from memory
             clearKeptObjects()
+            gc() // Trigger garbage collection
+
+            // Add delay to ensure GC has time to remove objects
+            setTimeout(() => {
+              if (weakNode.deref()) {
+                throw new Error(
+                  `Test setup is broken, something is keeping the node in memory`
+                )
+              }
+            }, 10)
 
             // Restore default sort behavior
             return mockActualOrderBy(...args)
