@@ -279,11 +279,15 @@ describe(`fetch-remote-file`, () => {
   const cachePath = path.join(__dirname, `.cache-fetch`, `files`)
 
   beforeAll(async () => {
-    // Establish requests interception layer before all tests.
+    const originalFetch = global.fetch
+    delete global.fetch
+
     server.listen()
 
     cache = await createMockCache(cachePath)
     storage.getDatabaseDir.mockReturnValue(cacheRoot)
+
+    global.fetch = originalFetch
   })
 
   afterAll(async () => {
