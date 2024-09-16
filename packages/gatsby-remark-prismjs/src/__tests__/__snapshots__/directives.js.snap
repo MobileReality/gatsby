@@ -221,8 +221,12 @@ exports[`highlighting lines highlight-start / highlight-end highlights correct l
 `;
 
 exports[`highlighting lines highlight-start / highlight-end highlights without end directive 1`] = `
-"<span class=\\"gatsby-highlight-code-line\\">var a = \\"b\\"</span>
-<span class=\\"gatsby-highlight-code-line\\">return a + \\"hello world\\"</span>
+"<span class=\\"gatsby-highlight-code-line\\"></span>
+<span class=\\"gatsby-highlight-code-line\\">function test() {</span>
+<span class=\\"gatsby-highlight-code-line\\">  var a = \\"b\\"</span>
+<span class=\\"gatsby-highlight-code-line\\">  return a + \\"hello world\\"</span>
+<span class=\\"gatsby-highlight-code-line\\">}</span>
+<span class=\\"gatsby-highlight-code-line\\"></span>
 <span class=\\"gatsby-highlight-code-line\\"></span>"
 `;
 

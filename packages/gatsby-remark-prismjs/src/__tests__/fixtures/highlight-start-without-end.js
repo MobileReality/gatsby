@@ -1,3 +1,7 @@
 // highlight-start
-var a = "b"
-return a + "hello world"
+
+function test() {
+  var a = "b"
+  return a + "hello world"
+}
+
