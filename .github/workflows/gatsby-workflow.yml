@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   test:
@@ -12,16 +12,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
-      
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with: 
-        node-version: '20.12.0'
-        
-    - name: Install Deps
-      run: yarn install
-      
-    - name: Run tests
-      run: yarn run test
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.0"
+
+      - name: Install Deps
+        run: yarn install
+
+      - name: Run tests
+        run: yarn run test
