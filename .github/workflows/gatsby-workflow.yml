@@ -20,8 +20,20 @@ jobs:
         with:
           node-version: "20.12.0"
 
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.0"
+          cache: yarn
+
       - name: Install Deps
         run: yarn install
+
+      - name: Install Deps
+        run: yarn run bootstrap
 
       - name: Run tests
         run: yarn run test
