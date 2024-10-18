@@ -33,7 +33,7 @@ jobs:
         run: yarn install
 
       - name: Install Deps
-        run: yarn run watch
+        run: yarn run bootstrap
 
       - name: Run tests
         run: yarn run test
